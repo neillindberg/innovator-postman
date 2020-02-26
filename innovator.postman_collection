@@ -1,0 +1,337 @@
+{
+	"info": {
+		"_postman_id": "56d690f1-3629-4b13-90c7-d9d36f6d0fa8",
+		"name": "Aras Innovator",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get Token Address",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "6b14b16e-bde7-45a3-b015-4f003c137a55",
+						"exec": [
+							"const {locations} = pm.response.json();",
+							"pm.environment.set(\"oauth_url\", locations[0].uri);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": []
+				},
+				"url": {
+					"raw": "{{discovery_url}}",
+					"host": [
+						"{{discovery_url}}"
+					]
+				},
+				"description": "Test that a user can login."
+			},
+			"response": []
+		},
+		{
+			"name": "Get Well Knowns",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "8921720d-fbd0-4a17-81eb-b7fe9b743b59",
+						"exec": [
+							"const {token_endpoint} = pm.response.json();",
+							"pm.environment.set(\"token_endpoint\", token_endpoint);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": []
+				},
+				"url": {
+					"raw": "{{oauth_url}}/.well-known/openid-configuration",
+					"host": [
+						"{{oauth_url}}"
+					],
+					"path": [
+						".well-known",
+						"openid-configuration"
+					]
+				},
+				"description": "Test that a user can login."
+			},
+			"response": []
+		},
+		{
+			"name": "Obtain Token w/ POST",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "ddd72de4-d3d2-49d5-bd5b-cab28b8530f5",
+						"exec": [
+							"/*",
+							"grant_type:password",
+							"scope:Innovator",
+							"password:51486C4F6ED16EEF5C251D4135C5F17",
+							"database:InnovatorSolutions11",
+							"client_id:IOMApp",
+							"username:admin",
+							"*/"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "8fedee65-11e6-4b49-afce-905972007e2b",
+						"exec": [
+							"const {access_token} = pm.response.json();",
+							"pm.environment.set(\"access_token\", access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "password",
+							"type": "text"
+						},
+						{
+							"key": "scope",
+							"value": "Innovator",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "607920B64FE136F9AB2389E371852AF2",
+							"type": "text"
+						},
+						{
+							"key": "database",
+							"value": "InnovatorSolutions",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "IOMApp",
+							"type": "text"
+						},
+						{
+							"key": "username",
+							"value": "admin",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{token_endpoint}}",
+					"host": [
+						"{{token_endpoint}}"
+					]
+				},
+				"description": "Test that a user can login."
+			},
+			"response": []
+		},
+		{
+			"name": "Add User",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "ddd72de4-d3d2-49d5-bd5b-cab28b8530f5",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "8fedee65-11e6-4b49-afce-905972007e2b",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/xml",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "<AML>\r\n  <Item type=\"User\" action=\"add\">\r\n    <login_name>testuser</login_name>\r\n    <password>607920b64fe136f9ab2389e371852af2</password>\r\n    <first_name>Testuser</first_name>\r\n    <last_name>Testuser</last_name>\r\n    <email>testuser@tset.com</email>\r\n    <logon_enabled>1</logon_enabled>\r\n  </Item>\r\n</AML>"
+				},
+				"url": {
+					"raw": "http://localhost/InnovatorServer",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"InnovatorServer"
+					]
+				},
+				"description": "Test that a user can login."
+			},
+			"response": []
+		},
+		{
+			"name": "Get Users",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "ddd72de4-d3d2-49d5-bd5b-cab28b8530f5",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "8fedee65-11e6-4b49-afce-905972007e2b",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/xml"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "<AML>\r\n  <Item type=\"User\" action=\"get\">\r\n  </Item>\r\n</AML>"
+				},
+				"url": {
+					"raw": "http://localhost/InnovatorServer",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"InnovatorServer"
+					]
+				},
+				"description": "Test that a user can login."
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "346c5434-c387-438b-a54e-f0b6a6fecfb5",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "1bda3048-db0d-4f20-aed5-67dfb5d2b4e7",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "5c102b51-f27b-4f61-9b0e-a0e1facca7a7",
+			"key": "server_url",
+			"value": "http://localhost/InnovatorServer",
+			"type": "string"
+		}
+	],
+	"protocolProfileBehavior": {}
+}
