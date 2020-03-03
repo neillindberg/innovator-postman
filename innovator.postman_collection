@@ -14,7 +14,20 @@
 						"id": "6b14b16e-bde7-45a3-b015-4f003c137a55",
 						"exec": [
 							"const {locations} = pm.response.json();",
-							"pm.environment.set(\"oauth_url\", locations[0].uri);"
+							"const version = pm.collectionVariables.get('version');",
+							"console.log('version: ', version);",
+							"pm.environment.set(\"oauth_url\", locations[0].uri);",
+							"pm.environment.set('database', 'InnovatorSolutions' + version);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "e621226a-80c2-42b0-a6c7-c35a7c97621b",
+						"exec": [
+							""
 						],
 						"type": "text/javascript"
 					}
@@ -34,9 +47,9 @@
 					"formdata": []
 				},
 				"url": {
-					"raw": "{{discovery_url}}",
+					"raw": "{{base_url}}{{version}}{{discovery_url}}",
 					"host": [
-						"{{discovery_url}}"
+						"{{base_url}}{{version}}{{discovery_url}}"
 					]
 				},
 				"description": "Test that a user can login."
@@ -72,12 +85,12 @@
 					"formdata": []
 				},
 				"url": {
-					"raw": "{{oauth_url}}/.well-known/openid-configuration",
+					"raw": "{{oauth_url}}.well-known/openid-configuration",
 					"host": [
-						"{{oauth_url}}"
+						"{{oauth_url}}",
+						"well-known"
 					],
 					"path": [
-						".well-known",
 						"openid-configuration"
 					]
 				},
@@ -93,14 +106,7 @@
 					"script": {
 						"id": "ddd72de4-d3d2-49d5-bd5b-cab28b8530f5",
 						"exec": [
-							"/*",
-							"grant_type:password",
-							"scope:Innovator",
-							"password:51486C4F6ED16EEF5C251D4135C5F17",
-							"database:InnovatorSolutions11",
-							"client_id:IOMApp",
-							"username:admin",
-							"*/"
+							""
 						],
 						"type": "text/javascript"
 					}
@@ -145,12 +151,12 @@
 						},
 						{
 							"key": "password",
-							"value": "607920B64FE136F9AB2389E371852AF2",
+							"value": "{{md5_pass}}",
 							"type": "text"
 						},
 						{
 							"key": "database",
-							"value": "InnovatorSolutions",
+							"value": "{{database}}",
 							"type": "text"
 						},
 						{
@@ -160,7 +166,7 @@
 						},
 						{
 							"key": "username",
-							"value": "admin",
+							"value": "{{user}}",
 							"type": "text"
 						}
 					]
@@ -176,14 +182,117 @@
 			"response": []
 		},
 		{
-			"name": "Add User",
+			"name": "Add User - Bearer - JSON",
 			"event": [
 				{
 					"listen": "prerequest",
 					"script": {
 						"id": "ddd72de4-d3d2-49d5-bd5b-cab28b8530f5",
 						"exec": [
-							""
+							"// const body = '<?xml version=\"1.0\" encoding=\"utf-8\" ?><AML><Item type=\"User\" action=\"add\"><login_name>testuser3</login_name><password>607920b64fe136f9ab2389e371852af2</password><first_name>Testuser3</first_name><last_name>Testuser3</last_name><email>testuse3r@tset.com</email><logon_enabled>1</logon_enabled></Item></AML>';",
+							"//",
+							"const body = {",
+							"   login_name: 'testaroon',",
+							"   password: '607920b64fe136f9ab2389e371852af2',",
+							"   first_name: 'test',",
+							"   last_name: 'aroon',",
+							"   email: 't12345@t.com',",
+							"   logon_enabled: 1",
+							"};",
+							"pm.environment.set('request_body', JSON.stringify(body));"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "8fedee65-11e6-4b49-afce-905972007e2b",
+						"exec": [
+							"const { id } = pm.response.json();",
+							"pm.environment.set('non_admin_user_id', id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "text/plain",
+						"type": "text"
+					},
+					{
+						"key": "AUTHUSER",
+						"value": "{{user}}",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "AUTHPASSWORD",
+						"value": "{{md5_pass}}",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "DATABASE",
+						"value": "{{database}}",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{{request_body}}",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}{{version}}/server/odata/User",
+					"host": [
+						"{{base_url}}{{version}}"
+					],
+					"path": [
+						"server",
+						"odata",
+						"User"
+					]
+				},
+				"description": "Test that a user can login."
+			},
+			"response": []
+		},
+		{
+			"name": "Edit User - Bearer - JSON",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "ddd72de4-d3d2-49d5-bd5b-cab28b8530f5",
+						"exec": [
+							"// const body = '<?xml version=\"1.0\" encoding=\"utf-8\" ?><AML><Item type=\"User\" action=\"add\"><login_name>testuser3</login_name><password>607920b64fe136f9ab2389e371852af2</password><first_name>Testuser3</first_name><last_name>Testuser3</last_name><email>testuse3r@tset.com</email><logon_enabled>1</logon_enabled></Item></AML>';",
+							"//",
+							"const body = {",
+							"   first_name: 'FooBar',",
+							"   company_name: 'B+L'",
+							"};",
+							"pm.environment.set('request_body', JSON.stringify(body));"
 						],
 						"type": "text/javascript"
 					}
@@ -210,27 +319,51 @@
 						}
 					]
 				},
-				"method": "PUT",
+				"method": "PATCH",
 				"header": [
 					{
 						"key": "Content-Type",
 						"name": "Content-Type",
-						"value": "application/xml",
-						"type": "text"
+						"type": "text",
+						"value": "text/plain"
+					},
+					{
+						"key": "AUTHUSER",
+						"type": "text",
+						"value": "{{user}}",
+						"disabled": true
+					},
+					{
+						"key": "AUTHPASSWORD",
+						"type": "text",
+						"value": "{{md5_pass}}",
+						"disabled": true
+					},
+					{
+						"key": "DATABASE",
+						"type": "text",
+						"value": "{{database}}",
+						"disabled": true
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "<AML>\r\n  <Item type=\"User\" action=\"add\">\r\n    <login_name>testuser</login_name>\r\n    <password>607920b64fe136f9ab2389e371852af2</password>\r\n    <first_name>Testuser</first_name>\r\n    <last_name>Testuser</last_name>\r\n    <email>testuser@tset.com</email>\r\n    <logon_enabled>1</logon_enabled>\r\n  </Item>\r\n</AML>"
+					"raw": "{{request_body}}",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
 				},
 				"url": {
-					"raw": "http://localhost/InnovatorServer",
-					"protocol": "http",
+					"raw": "{{base_url}}{{version}}/server/odata/User('{{non_admin_user_id}}')",
 					"host": [
-						"localhost"
+						"{{base_url}}{{version}}"
 					],
 					"path": [
-						"InnovatorServer"
+						"server",
+						"odata",
+						"User('{{non_admin_user_id}}')"
 					]
 				},
 				"description": "Test that a user can login."
@@ -238,14 +371,14 @@
 			"response": []
 		},
 		{
-			"name": "Get Users",
+			"name": "Get Users - Filter/Select",
 			"event": [
 				{
 					"listen": "prerequest",
 					"script": {
 						"id": "ddd72de4-d3d2-49d5-bd5b-cab28b8530f5",
 						"exec": [
-							""
+							"// "
 						],
 						"type": "text/javascript"
 					}
@@ -261,9 +394,6 @@
 					}
 				}
 			],
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -279,23 +409,129 @@
 				"header": [
 					{
 						"key": "Content-Type",
-						"name": "Content-Type",
+						"value": "text/xml",
+						"type": "text"
+					},
+					{
+						"key": "AUTHUSER",
+						"value": "{{user}}",
 						"type": "text",
-						"value": "application/xml"
+						"disabled": true
+					},
+					{
+						"key": "AUTHPASSWORD",
+						"value": "{{md5_pass}}",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "DATABASE",
+						"value": "{{database}}",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}{{version}}/server/odata/User?$filter=id eq '{{non_admin_user_id}}'",
+					"host": [
+						"{{base_url}}{{version}}"
+					],
+					"path": [
+						"server",
+						"odata",
+						"User"
+					],
+					"query": [
+						{
+							"key": "$filter",
+							"value": "id eq '{{non_admin_user_id}}'"
+						}
+					]
+				},
+				"description": "Test that a user can login."
+			},
+			"response": []
+		},
+		{
+			"name": "Delete User - Bearer - JSON",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "ddd72de4-d3d2-49d5-bd5b-cab28b8530f5",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "8fedee65-11e6-4b49-afce-905972007e2b",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "AUTHUSER",
+						"type": "text",
+						"value": "{{user}}",
+						"disabled": true
+					},
+					{
+						"key": "AUTHPASSWORD",
+						"type": "text",
+						"value": "{{md5_pass}}",
+						"disabled": true
+					},
+					{
+						"key": "DATABASE",
+						"type": "text",
+						"value": "{{database}}",
+						"disabled": true
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "<AML>\r\n  <Item type=\"User\" action=\"get\">\r\n  </Item>\r\n</AML>"
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
 				},
 				"url": {
-					"raw": "http://localhost/InnovatorServer",
-					"protocol": "http",
+					"raw": "{{base_url}}{{version}}/server/odata/User('{{non_admin_user_id}}')",
 					"host": [
-						"localhost"
+						"{{base_url}}{{version}}"
 					],
 					"path": [
-						"InnovatorServer"
+						"server",
+						"odata",
+						"User('{{non_admin_user_id}}')"
 					]
 				},
 				"description": "Test that a user can login."
@@ -327,9 +563,15 @@
 	],
 	"variable": [
 		{
-			"id": "5c102b51-f27b-4f61-9b0e-a0e1facca7a7",
-			"key": "server_url",
+			"id": "d1ebfc76-c67e-49ca-be60-ab7755e5d742",
+			"key": "base_url",
 			"value": "http://localhost/InnovatorServer",
+			"type": "string"
+		},
+		{
+			"id": "731a0be0-f5bf-4a30-aa55-1e9ac768dc25",
+			"key": "version",
+			"value": "12",
 			"type": "string"
 		}
 	],
