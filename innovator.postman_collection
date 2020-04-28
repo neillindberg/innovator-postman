@@ -191,15 +191,38 @@
 						"exec": [
 							"// const body = '<?xml version=\"1.0\" encoding=\"utf-8\" ?><AML><Item type=\"User\" action=\"add\"><login_name>testuser3</login_name><password>607920b64fe136f9ab2389e371852af2</password><first_name>Testuser3</first_name><last_name>Testuser3</last_name><email>testuse3r@tset.com</email><logon_enabled>1</logon_enabled></Item></AML>';",
 							"//",
+							"const users = Array(3).fill(null).map((x, i) => {",
+							"    return {",
+							"        login_name: 'test' + i,",
+							"        // default password \"innovator\" for everyone.",
+							"        password: '607920B64FE136F9AB2389E371852AF2',",
+							"        first_name: 'test' + i,",
+							"        last_name: 'user' + i,",
+							"        email: 'test.user' + i + '@myinnovator.com',",
+							"        logon_enabled: 1,",
+							"        starting_page: 'Configurable InBasket',",
+							"        telephone: '+1 (555) 555-5555',",
+							"        domain: 'blamericas'",
+							"    };",
+							"});",
+							"//",
+							"pm.environment.set('request_body', JSON.stringify(users[0]));",
+							"",
+							"// Below works just fine.",
+							" /*",
 							"const body = {",
 							"   login_name: 'testaroon',",
+							"   telephone: '+1 (555) 555-5555',",
 							"   password: '607920b64fe136f9ab2389e371852af2',",
 							"   first_name: 'test',",
 							"   last_name: 'aroon',",
 							"   email: 't12345@t.com',",
-							"   logon_enabled: 1",
+							"   logon_enabled: 1,",
+							"   starting_page: 'Configurable InBasket'",
 							"};",
-							"pm.environment.set('request_body', JSON.stringify(body));"
+							"",
+							"pm.environment.set('request_body', JSON.stringify(body));",
+							"*/"
 						],
 						"type": "text/javascript"
 					}
@@ -279,6 +302,103 @@
 			"response": []
 		},
 		{
+			"name": "Add Identities - Bearer - JSON",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "ddd72de4-d3d2-49d5-bd5b-cab28b8530f5",
+						"exec": [
+							"// Phase 1 PLM Identity shape",
+							"// Name\tDescription\tIs Alias\tIs Reviewer Approver\tClassification",
+							"const identity = {",
+							"    name: 'TEST IDENTITY',",
+							"    description: 'Acme, Ltd.',",
+							"    is_alias: false,",
+							"    is_reviewer_approver : true,",
+							"    classification: null",
+							"};",
+							"//",
+							"pm.environment.set('request_body', JSON.stringify(identity));"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "8fedee65-11e6-4b49-afce-905972007e2b",
+						"exec": [
+							"// const { id } = pm.response.json();",
+							"// pm.environment.set('non_admin_user_id', id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "text/plain"
+					},
+					{
+						"key": "AUTHUSER",
+						"type": "text",
+						"value": "{{user}}",
+						"disabled": true
+					},
+					{
+						"key": "AUTHPASSWORD",
+						"type": "text",
+						"value": "{{md5_pass}}",
+						"disabled": true
+					},
+					{
+						"key": "DATABASE",
+						"type": "text",
+						"value": "{{database}}",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{{request_body}}",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}{{version}}/server/odata/Identity",
+					"host": [
+						"{{base_url}}{{version}}"
+					],
+					"path": [
+						"server",
+						"odata",
+						"Identity"
+					]
+				},
+				"description": "Test that a user can login."
+			},
+			"response": []
+		},
+		{
 			"name": "Edit User - Bearer - JSON",
 			"event": [
 				{
@@ -289,7 +409,7 @@
 							"// const body = '<?xml version=\"1.0\" encoding=\"utf-8\" ?><AML><Item type=\"User\" action=\"add\"><login_name>testuser3</login_name><password>607920b64fe136f9ab2389e371852af2</password><first_name>Testuser3</first_name><last_name>Testuser3</last_name><email>testuse3r@tset.com</email><logon_enabled>1</logon_enabled></Item></AML>';",
 							"//",
 							"const body = {",
-							"   first_name: 'FooBar',",
+							"   starting_page: null,",
 							"   company_name: 'B+L'",
 							"};",
 							"pm.environment.set('request_body', JSON.stringify(body));"
@@ -356,14 +476,14 @@
 					}
 				},
 				"url": {
-					"raw": "{{base_url}}{{version}}/server/odata/User('{{non_admin_user_id}}')",
+					"raw": "{{base_url}}{{version}}/server/odata/User('{{admin_user_id}}')",
 					"host": [
 						"{{base_url}}{{version}}"
 					],
 					"path": [
 						"server",
 						"odata",
-						"User('{{non_admin_user_id}}')"
+						"User('{{admin_user_id}}')"
 					]
 				},
 				"description": "Test that a user can login."
@@ -378,7 +498,7 @@
 					"script": {
 						"id": "ddd72de4-d3d2-49d5-bd5b-cab28b8530f5",
 						"exec": [
-							"// "
+							""
 						],
 						"type": "text/javascript"
 					}
@@ -445,6 +565,89 @@
 						{
 							"key": "$filter",
 							"value": "id eq '{{non_admin_user_id}}'"
+						}
+					]
+				},
+				"description": "Test that a user can login."
+			},
+			"response": []
+		},
+		{
+			"name": "Get Users - ADMIN",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "ddd72de4-d3d2-49d5-bd5b-cab28b8530f5",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "8fedee65-11e6-4b49-afce-905972007e2b",
+						"exec": [
+							"const id = pm.response.json().value[0].id;",
+							"pm.environment.set('admin_user_id', id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "text/xml"
+					},
+					{
+						"key": "AUTHUSER",
+						"type": "text",
+						"value": "{{user}}",
+						"disabled": true
+					},
+					{
+						"key": "AUTHPASSWORD",
+						"type": "text",
+						"value": "{{md5_pass}}",
+						"disabled": true
+					},
+					{
+						"key": "DATABASE",
+						"type": "text",
+						"value": "{{database}}",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}{{version}}/server/odata/User?$filter=login_name eq 'admin'",
+					"host": [
+						"{{base_url}}{{version}}"
+					],
+					"path": [
+						"server",
+						"odata",
+						"User"
+					],
+					"query": [
+						{
+							"key": "$filter",
+							"value": "login_name eq 'admin'"
 						}
 					]
 				},
@@ -563,15 +766,15 @@
 	],
 	"variable": [
 		{
-			"id": "d1ebfc76-c67e-49ca-be60-ab7755e5d742",
+			"id": "6342c695-aa54-49a9-9018-53e885b0d512",
 			"key": "base_url",
 			"value": "http://localhost/InnovatorServer",
 			"type": "string"
 		},
 		{
-			"id": "731a0be0-f5bf-4a30-aa55-1e9ac768dc25",
+			"id": "e87bf211-cc92-4d68-83be-bc0beb16931f",
 			"key": "version",
-			"value": "12",
+			"value": "11",
 			"type": "string"
 		}
 	],
